@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db_master:
+    image: postgres:15
+    container_name: db_master
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: boulangerie
+    volumes:
+      - ./postgres/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
+      - ./postgres/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql
+    command: ["postgres", "-c", "wal_level=replica", "-c", "max_wal_senders=10"]
+
+  db_slave:
+    image: postgres:15
+    container_name: db_slave
+    depends_on:
+      - db_master
+    environment:
+      PGPASSWORD: replicapass
+    command: |
+      bash -c "
+      echo 'En attente du démarrage du master...'
+      until pg_isready -h db_master -U user; do
+        sleep 1
+      done
+
+      echo 'Master prêt, suppression des données locales...'
+      rm -rf /var/lib/postgresql/data/*
+
+      echo 'Lancement du backup depuis le master...'
+      pg_basebackup -h db_master -D /var/lib/postgresql/data -U replication_user -vP -R
+
+      echo 'Correction des permissions...'
+      chown -R postgres:postgres /var/lib/postgresql/data
+      chmod 700 /var/lib/postgresql/data
+
+      echo 'Démarrage de la base slave...'
+      # On utilise exec gosu pour repasser sur l'utilisateur postgres proprement
+      exec gosu postgres postgres
+      "
+
+  api_write:
+    build: ./api_write
+    ports: ["8001:8000"]
+    depends_on:
+      - db_master
+
+  api_read:
+    build: ./api_read
+    ports: ["8002:8000"]
+    depends_on:
+      - db_slave
