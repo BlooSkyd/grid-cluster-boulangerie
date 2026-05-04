@@ -31,25 +31,17 @@ sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin dock
 sudo docker run hello-world
 ```
 # II Installation minikub
-
+pré requis:
+- CPU: 2
+- RAM: 8 Go
 ## a. minikub
 source : https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download
 ```sh
 curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+sudo usermod -aG docker $USER && newgrp docker
 minikube start
 ```
-Erreur :
-$ sudo minikube start
-😄  minikube v1.38.1 on Ubuntu 22.04
-✨  Automatically selected the docker driver. Other choices: none, ssh
-🛑  The "docker" driver should not be used with root privileges. If you wish to continue as root, use --force.
-💡  If you are running minikube within a VM, consider using --driver=none:
-📘    https://minikube.sigs.k8s.io/docs/reference/drivers/none/
-
-❌  Exiting due to DRV_AS_ROOT: The "docker" driver should not be used with root privileges.
-
-c'est fait avec du titi ou quoi ?
 
 ## b.kubctl
 source : https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
@@ -62,3 +54,11 @@ kubectl version --client
 kubectl cluster-info
 ```
 
+## c. Dépanner 
+Si minikube ne démarre pas correctement je sais pas pourquoi kubelet et l'api server refuse de démarrer.
+
+Alors faire:
+```sh
+minikube delete
+minikube start
+```
