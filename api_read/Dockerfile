@@ -10,7 +10,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir fastapi uvicorn psycopg2-binary
 
 # Copie du code source
-COPY main.py .
+COPY read-api.py .
 
 # Exposition du port
 EXPOSE 8000

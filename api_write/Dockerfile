@@ -7,10 +7,10 @@ RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/li
 WORKDIR /app
 
 # Installation des dépendances Python
-RUN pip install --no-cache-dir fastapi uvicorn psycopg2-binary
+RUN pip install --no-cache-dir fastapi uvicorn psycopg2-binary kafka-python
 
 # Copie du code source
-COPY main.py .
+COPY write-api.py .
 
 # Exposition du port
 EXPOSE 8000

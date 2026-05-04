@@ -1,6 +1,59 @@
 version: '3.8'
 
 services:
+  zookeeper:
+    image: bitnami/zookeeper:3
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    ports:
+      - "2181:2181"
+    restart: unless-stopped
+
+  kafka1:
+    image: bitnami/kafka:3
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    restart: unless-stopped
+
+  kafka2:
+    image: bitnami/kafka:3
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9093
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+
+  kafka3:
+    image: bitnami/kafka:3
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9094
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    restart: unless-stopped
+
   db_master:
     image: postgres:15
     container_name: db_master
@@ -11,7 +64,11 @@ services:
     volumes:
       - ./postgres/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
       - ./postgres/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql
-    command: ["postgres", "-c", "wal_level=replica", "-c", "max_wal_senders=10"]
+      - ./postgres/master-data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "wal_level=replica", "-c", "max_wal_senders=10", "-c", "listen_addresses='*'"]
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
 
   db_slave:
     image: postgres:15
@@ -20,36 +77,46 @@ services:
       - db_master
     environment:
       PGPASSWORD: replicapass
-    command: |
-      bash -c "
-      echo 'En attente du démarrage du master...'
-      until pg_isready -h db_master -U user; do
-        sleep 1
-      done
-
-      echo 'Master prêt, suppression des données locales...'
-      rm -rf /var/lib/postgresql/data/*
-
-      echo 'Lancement du backup depuis le master...'
-      pg_basebackup -h db_master -D /var/lib/postgresql/data -U replication_user -vP -R
-
-      echo 'Correction des permissions...'
-      chown -R postgres:postgres /var/lib/postgresql/data
-      chmod 700 /var/lib/postgresql/data
-
-      echo 'Démarrage de la base slave...'
-      # On utilise exec gosu pour repasser sur l'utilisateur postgres proprement
-      exec gosu postgres postgres
-      "
+    volumes:
+      - ./postgres/setup-slave.sh:/docker-entrypoint-initdb.d/setup-slave.sh
+      - ./postgres/slave-data:/var/lib/postgresql/data
+    command: ["bash", "/docker-entrypoint-initdb.d/setup-slave.sh"]
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
 
   api_write:
     build: ./api_write
-    ports: ["8001:8000"]
+    ports:
+      - "8001:8000"
     depends_on:
-      - db_master
+      - kafka1
+      - kafka2
+      - kafka3
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9093,kafka3:9094"
 
   api_read:
     build: ./api_read
-    ports: ["8002:8000"]
+    ports:
+      - "8002:8000"
     depends_on:
       - db_slave
+
+  sync:
+    build: ./sync
+    container_name: sync_service
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+      - db_master
+    environment:
+      DB_HOST: db_master
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: pass
+      DB_NAME: boulangerie
+      KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9093,kafka3:9094"
+      TOPIC: pains
+    restart: unless-stopped
