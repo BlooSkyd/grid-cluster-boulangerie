@@ -9,7 +9,7 @@ import psycopg2
 
 logging.basicConfig(level=logging.INFO)
 
-BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka1:9092")
+BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka1:9092")  # a revoir les broker ne sont pas tous utilisé
 TOPIC = os.environ.get("TOPIC", "pains")
 
 def ensure_topic():
@@ -38,46 +38,30 @@ def process_event(ev):
     entity = ev.get("entity")
     if op == "create":
         data = ev.get("data", {})
-        # Création d'un pain
-        if entity == "pain" or (data.get("nom") is not None and entity is None):
-            for host in (os.environ.get("DB_HOST", "db_master"), os.environ.get("DB_SLAVE_HOST", "db_slave")):
-                try:
-                    conn = get_db_conn(host)
-                    cur = conn.cursor()
-                    cur.execute(
-                        "INSERT INTO pains (nom, cuisson, prix, poids) VALUES (%s,%s,%s,%s)",
-                        (data.get("nom"), data.get("cuisson"), data.get("prix"), data.get("poids")),
-                    )
-                    conn.commit()
-                    cur.close()
-                    conn.close()
-                    logging.info("Inserted pain %s into %s", data.get("nom"), host)
-                except Exception as e:
-                    logging.exception("Failed insert on %s: %s", host, e)
 
         # Création d'une commande (événement explicitement fourni avec entity='commande')
         if entity == "commande":
             # data attendu: {"ref_id": <uuid>, "qte": <int>} ; on enregistre sur le master et on met à jour la compta sur la slave
-            ref_id = data.get("ref_id")
+            ref_id = int(data.get("ref_id"))
             qte = int(data.get("qte", 0))
             if not ref_id or qte <= 0:
                 logging.warning("Commande create: ref_id manquant ou qte invalide %s", data)
             else:
                 # Récupérer prix unitaire depuis le master
                 try:
-                    connm = get_db_conn(os.environ.get("DB_HOST", "db_master"))
-                    curm = connm.cursor()
-                    curm.execute("SELECT nom, prix FROM pains WHERE id = %s", (ref_id,))
-                    row = curm.fetchone()
+                    conn_master = get_db_conn(os.environ.get("DB_HOST", "db_master"))
+                    cursor_master = conn_master.cursor()
+                    cursor_master.execute("SELECT nom, prix FROM pains WHERE id = %s", (ref_id))
+                    row = cursor_master.fetchone()
                     if row:
                         nom_pain, prix_unit = row[0], float(row[1])
                     else:
                         nom_pain, prix_unit = None, 0.0
                     # Insérer la commande sur le master
-                    curm.execute("INSERT INTO commandes (ref_id, qte) VALUES (%s, %s)", (ref_id, qte))
-                    connm.commit()
-                    curm.close()
-                    connm.close()
+                    cursor_master.execute("INSERT INTO commandes (ref_id, qte) VALUES (%s, %s)", (ref_id, qte))
+                    conn_master.commit()
+                    cursor_master.close()
+                    conn_master.close()
                     logging.info("Inserted commande ref=%s qte=%s on master", ref_id, qte)
                 except Exception as e:
                     logging.exception("Failed to insert commande on master: %s", e)
@@ -85,65 +69,21 @@ def process_event(ev):
 
                 # Mettre à jour la table compta sur la slave en upsert
                 try:
-                    conn_s = get_db_conn(os.environ.get("DB_SLAVE_HOST", "db_slave"))
-                    curs = conn_s.cursor()
+                    conn_slave = get_db_conn(os.environ.get("DB_SLAVE_HOST", "db_slave"))
+                    cursor_slave= conn_slave.cursor()
                     add_total = qte * prix_unit
                     # Utilise ON CONFLICT pour créer ou mettre à jour l'agrégat
-                    curs.execute(
+                    cursor_slaveexecute(
                         "INSERT INTO compta (ref_id, nom, prix_total, nb_cmd) VALUES (%s, %s, %s, %s) "
                         "ON CONFLICT (ref_id) DO UPDATE SET prix_total = compta.prix_total + EXCLUDED.prix_total, nb_cmd = compta.nb_cmd + EXCLUDED.nb_cmd",
                         (ref_id, nom_pain or 'unknown', add_total, 1),
                     )
-                    conn_s.commit()
-                    curs.close()
-                    conn_s.close()
+                    conn_slave.commit()
+                    cursor_slaveclose()
+                    conn_slave.close()
                     logging.info("Updated compta on slave for ref=%s add_total=%s", ref_id, add_total)
                 except Exception as e:
                     logging.exception("Failed to update compta on slave: %s", e)
-    elif op == "delete":
-        pid = ev.get("id")
-        name = ev.get("nom") or (ev.get("data") or {}).get("nom")
-        if pid is None and not name:
-            logging.warning("Delete event without id or name")
-            return
-        for host in (os.environ.get("DB_HOST", "db_master"), os.environ.get("DB_SLAVE_HOST", "db_slave")):
-            try:
-                conn = get_db_conn(host)
-                cur = conn.cursor()
-                if pid is not None:
-                    cur.execute("DELETE FROM pains WHERE id = %s", (pid,))
-                else:
-                    cur.execute("DELETE FROM pains WHERE nom = %s", (name,))
-                conn.commit()
-                cur.close()
-                conn.close()
-                logging.info("Deleted on %s id=%s name=%s", host, pid, name)
-            except Exception as e:
-                logging.exception("Failed delete on %s: %s", host, e)
-    elif op == "update":
-        data = ev.get("data", {})
-        pid = data.get("id")
-        name = data.get("nom")
-        for host in (os.environ.get("DB_HOST", "db_master"), os.environ.get("DB_SLAVE_HOST", "db_slave")):
-            try:
-                conn = get_db_conn(host)
-                cur = conn.cursor()
-                if pid is not None:
-                    cur.execute(
-                        "UPDATE pains SET nom=%s, cuisson=%s, prix=%s, poids=%s WHERE id=%s",
-                        (data.get("nom"), data.get("cuisson"), data.get("prix"), data.get("poids"), pid),
-                    )
-                else:
-                    cur.execute(
-                        "UPDATE pains SET cuisson=%s, prix=%s, poids=%s WHERE nom=%s",
-                        (data.get("cuisson"), data.get("prix"), data.get("poids"), name),
-                    )
-                conn.commit()
-                cur.close()
-                conn.close()
-                logging.info("Updated on %s id=%s name=%s", host, pid, name)
-            except Exception as e:
-                logging.exception("Failed update on %s: %s", host, e)
     else:
         logging.warning("Unknown operation %s", op)
 
