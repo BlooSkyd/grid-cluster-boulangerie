@@ -25,21 +25,21 @@ INSERT INTO pains (nom, prix) VALUES
 ('Pavé de seigle', 3.50),
 ('Miche de pain', 4.50);
 
--- Génération d'une vingtaine de commandes exemples (ref_id correspond aux ids de `pains` : 1..6)
+-- Génération d'une vingtaine de commandes exemples (ref_id correspond aux ids de `pains` : 1..7)
 INSERT INTO commandes (ref_id, qte) VALUES (1, 3);
 INSERT INTO commandes (ref_id, qte) VALUES (2, 1);
 INSERT INTO commandes (ref_id, qte) VALUES (3, 5);
 INSERT INTO commandes (ref_id, qte) VALUES (4, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (5, 1);
 INSERT INTO commandes (ref_id, qte) VALUES (6, 4);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 2);
+INSERT INTO commandes (ref_id, qte) VALUES (7, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (1, 1);
 INSERT INTO commandes (ref_id, qte) VALUES (2, 3);
 INSERT INTO commandes (ref_id, qte) VALUES (3, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (4, 6);
 INSERT INTO commandes (ref_id, qte) VALUES (5, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (6, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 5);
+INSERT INTO commandes (ref_id, qte) VALUES (7, 5);
 INSERT INTO commandes (ref_id, qte) VALUES (1, 4);
 INSERT INTO commandes (ref_id, qte) VALUES (2, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (3, 3);

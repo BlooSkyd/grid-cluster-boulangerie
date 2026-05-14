@@ -57,13 +57,24 @@ def process_event(ev):
 
         # Création d'une commande (événement explicitement fourni avec entity='commande')
         if entity == "commande":
-            # data attendu: {"ref_id": <uuid>, "qte": <int>} ; on enregistre sur le master et on met à jour la compta sur la slave
-            ref_id = data.get("ref_id")
-            qte = int(data.get("qte", 0))
-            if not ref_id or qte <= 0:
+            # data attendu: {"ref_id": <int>, "qte": <int>} ; on enregistre sur le master et on met à jour la compta sur la slave
+            try:
+                ref_id = int(data.get("ref_id"))
+            except Exception:
+                ref_id = None
+            try:
+                qte = int(data.get("qte", 0))
+            except Exception:
+                qte = 0
+
+            if ref_id is None or qte <= 0:
                 logging.warning("Commande create: ref_id manquant ou qte invalide %s", data)
             else:
-                # Récupérer prix unitaire depuis le master
+                nom_pain = None
+                prix_unit = 0.0
+                # Récupérer prix unitaire depuis le master et insérer la commande
+                connm = None
+                curm = None
                 try:
                     connm = get_db_conn(os.environ.get("DB_HOST", "db_master"))
                     curm = connm.cursor()
@@ -71,19 +82,21 @@ def process_event(ev):
                     row = curm.fetchone()
                     if row:
                         nom_pain, prix_unit = row[0], float(row[1])
-                    else:
-                        nom_pain, prix_unit = None, 0.0
                     # Insérer la commande sur le master
                     curm.execute("INSERT INTO commandes (ref_id, qte) VALUES (%s, %s)", (ref_id, qte))
                     connm.commit()
-                    curm.close()
-                    connm.close()
                     logging.info("Inserted commande ref=%s qte=%s on master", ref_id, qte)
                 except Exception as e:
                     logging.exception("Failed to insert commande on master: %s", e)
-                    nom_pain, prix_unit = None, 0.0
+                finally:
+                    if curm:
+                        curm.close()
+                    if connm:
+                        connm.close()
 
                 # Mettre à jour la table compta sur la slave en upsert
+                conn_s = None
+                curs = None
                 try:
                     conn_s = get_db_conn(os.environ.get("DB_SLAVE_HOST", "db_slave"))
                     curs = conn_s.cursor()
@@ -92,14 +105,17 @@ def process_event(ev):
                     curs.execute(
                         "INSERT INTO compta (ref_id, nom, prix_total, nb_cmd) VALUES (%s, %s, %s, %s) "
                         "ON CONFLICT (ref_id) DO UPDATE SET prix_total = compta.prix_total + EXCLUDED.prix_total, nb_cmd = compta.nb_cmd + EXCLUDED.nb_cmd",
-                        (ref_id, nom_pain or 'unknown', add_total, 1),
+                        (ref_id, nom_pain or 'unknown', add_total, qte),
                     )
                     conn_s.commit()
-                    curs.close()
-                    conn_s.close()
-                    logging.info("Updated compta on slave for ref=%s add_total=%s", ref_id, add_total)
+                    logging.info("Updated compta on slave for ref=%s add_total=%s qte=%s", ref_id, add_total, qte)
                 except Exception as e:
                     logging.exception("Failed to update compta on slave: %s", e)
+                finally:
+                    if curs:
+                        curs.close()
+                    if conn_s:
+                        conn_s.close()
     elif op == "delete":
         pid = ev.get("id")
         name = ev.get("nom") or (ev.get("data") or {}).get("nom")

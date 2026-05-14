@@ -1,6 +1,6 @@
 -- Table d'agrégation sur la slave : compta par pain
 CREATE TABLE IF NOT EXISTS compta (
-    ref_id UUID PRIMARY KEY,
+    ref_id INTEGER PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     prix_total DECIMAL(18,2) DEFAULT 0,
     nb_cmd INTEGER DEFAULT 0
