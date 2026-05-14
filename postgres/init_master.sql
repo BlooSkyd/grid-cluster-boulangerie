@@ -8,38 +8,37 @@ CREATE TABLE IF NOT EXISTS pains (
     prix DECIMAL(10, 2)
 );
 
-
 CREATE TABLE IF NOT EXISTS commandes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ref_id INTEGER NOT NULL,
     qte INTEGER NOT NULL
 );
 
-
--- Peuplage de la base with generated UUIDs
+-- Peuplage de la table `pains`
 INSERT INTO pains (nom, prix) VALUES
-('Baguette Tradition' 1.2),
-('Pain de Campagne',  2.5),
-('Baguette Blanche', 0.90,),
+('Baguette Tradition', 1.20),
+('Pain de Campagne', 2.50),
+('Baguette Blanche', 0.90),
 ('Pain aux Céréales', 3.00),
 ('Pavé de seigle', 3.50),
-('Miche de pain', 4.50);
+('Miche de pain', 4.50),
+('Ficelle', 1.00);
 
--- Génération d'une vingtaine de commandes exemples (ref_id correspond aux ids de `pains` : 1..7)
+-- Génération d'une vingtaine de commandes exemples (ref_id correspond aux ids de `pains` : 1..6)
 INSERT INTO commandes (ref_id, qte) VALUES (1, 3);
 INSERT INTO commandes (ref_id, qte) VALUES (2, 1);
 INSERT INTO commandes (ref_id, qte) VALUES (3, 5);
 INSERT INTO commandes (ref_id, qte) VALUES (4, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (5, 1);
 INSERT INTO commandes (ref_id, qte) VALUES (6, 4);
-INSERT INTO commandes (ref_id, qte) VALUES (7, 2);
+INSERT INTO commandes (ref_id, qte) VALUES (2, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (1, 1);
 INSERT INTO commandes (ref_id, qte) VALUES (2, 3);
 INSERT INTO commandes (ref_id, qte) VALUES (3, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (4, 6);
 INSERT INTO commandes (ref_id, qte) VALUES (5, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (6, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (7, 5);
+INSERT INTO commandes (ref_id, qte) VALUES (2, 5);
 INSERT INTO commandes (ref_id, qte) VALUES (1, 4);
 INSERT INTO commandes (ref_id, qte) VALUES (2, 2);
 INSERT INTO commandes (ref_id, qte) VALUES (3, 3);
