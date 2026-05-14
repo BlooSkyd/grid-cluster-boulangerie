@@ -6,7 +6,12 @@ app = FastAPI(title="API Lecture Pains")
 
 def get_conn():
     # Connexion au SLAVE (Lecture seule)
-    return psycopg2.connect("host=db_slave dbname=boulangerie user=user password=pass")
+    return psycopg2.connect(
+        host="db_slave",
+        port=5432,
+        dbname="boulangerie",
+        user="user",
+        password="pass")
 
 @app.get("/top")
 def get_all_pains():
