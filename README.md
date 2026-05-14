@@ -8,16 +8,25 @@ Quick run
 docker-compose up --build -d
 ```
 
-2. Write a bread (POST will produce to Kafka):
+2. Write a commandes (POST will produce to Kafka):
 
 ```bash
-curl -X POST http://localhost:8001/pains -H 'Content-Type: application/json' -d '{"nom":"Baguette Test","cuisson":"Normale","prix":1.5,"poids":250}'
+curl -X POST http://localhost:8001/commandes -H 'Content-Type: application/json' -d '{"ref_id":4,"qte":2}'
+```
+Check topic content (inside container):
+```bash
+/usr/bin/kafka-console-consumer --bootstrap-server localhost:9092 --topic commandes --from-beginning
 ```
 
 3. Read via read API (reads from slave DB):
 
+Get top 3 best sales
 ```bash
-curl http://localhost:8002/pains
+curl http://localhost:8002/top
+```
+Get info of precise bread (use `%20` if you want to have a space, name not case-sensitive)
+```bash
+curl http://localhost:8002/search/{name}
 ```
 
 What was added

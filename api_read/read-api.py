@@ -24,7 +24,7 @@ def get_all_pains():
     conn.close()
     return results
 
-@app.get("/pains/search")
+@app.get("/search/{nom}")
 def search_pains(nom: str):
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
