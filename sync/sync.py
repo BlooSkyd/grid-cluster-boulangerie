@@ -128,3 +128,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# TODO :
+"""
+Ajouter une logique de wipall de slave afin de synchro from scratch depuis master
+"""
