@@ -8,7 +8,7 @@ Quick run
 docker-compose up --build -d
 ```
 
-2. Write a pain (POST will produce to Kafka):
+2. Write a bread (POST will produce to Kafka):
 
 ```bash
 curl -X POST http://localhost:8001/pains -H 'Content-Type: application/json' -d '{"nom":"Baguette Test","cuisson":"Normale","prix":1.5,"poids":250}'
