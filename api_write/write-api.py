@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import os
 import json
 from kafka import KafkaProducer
+import uuid
 
 app = FastAPI(title="API Écriture Pains (producer)")
 
@@ -20,14 +21,18 @@ producer = KafkaProducer(
 
 @app.post("/pains")
 def create_pain(pain: Pain):
-    event = {"operation": "create", "data": pain.dict()}
+    pid = str(uuid.uuid4())
+    payload = pain.dict()
+    payload["id"] = pid
+    event = {"operation": "create", "data": payload}
     producer.send("pains", event)
     producer.flush()
-    return {"message": f"Événement envoyé pour '{pain.nom}'"}
+    return {"message": f"Événement envoyé pour '{pain.nom}'", "id": pid}
 
 
 @app.delete("/pains/{pain_id}")
-def delete_pain(pain_id: int):
+def delete_pain(pain_id: str):
+    # delete by UUID
     event = {"operation": "delete", "id": pain_id}
     producer.send("pains", event)
     producer.flush()
