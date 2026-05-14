@@ -1,16 +1,14 @@
 -- Création de la table avec les nouvelles colonnes
--- Use UUID primary key
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS pains (
-    id SERIAL PRIMARY KEY,
+    id_pain SERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     prix DECIMAL(10, 2)
 );
 
 CREATE TABLE IF NOT EXISTS commandes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ref_id INTEGER NOT NULL,
+    id_command SERIAL PRIMARY KEY,
+    ref_id_pain INTEGER REFERENCES pains(id_pain),
     qte INTEGER NOT NULL
 );
 
