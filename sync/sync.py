@@ -88,13 +88,13 @@ def process_event(ev):
                     cursor_slave= conn_slave.cursor()
                     add_total = qte * prix_unit
                     # Utilise ON CONFLICT pour créer ou mettre à jour l'agrégat
-                    cursor_slaveexecute(
+                    cursor_slave.execute(
                         "INSERT INTO compta (ref_id, nom, prix_total, nb_cmd) VALUES (%s, %s, %s, %s) "
                         "ON CONFLICT (ref_id) DO UPDATE SET prix_total = compta.prix_total + EXCLUDED.prix_total, nb_cmd = compta.nb_cmd + EXCLUDED.nb_cmd",
                         (ref_id, nom_pain or 'unknown', add_total, qte),
                     )
                     conn_slave.commit()
-                    cursor_slaveclose()
+                    cursor_slave.close()
                     conn_slave.close()
                     logging.info("Updated compta on slave for ref=%s add_total=%s", ref_id, add_total)
                 except Exception as e:
