@@ -63,9 +63,9 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: boulangerie
     volumes:
-      - ./postgres/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
-      - ./postgres/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql
-      - ./postgres/master-data:/var/lib/postgresql/data
+      - ./postgres/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh:ro
+      - ./postgres/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql:ro
+      - master-data:/var/lib/postgresql/data
     command: ["postgres", "-c", "wal_level=replica", "-c", "max_wal_senders=10", "-c", "listen_addresses='*'"]
     ports:
       - "5432:5432"
@@ -79,8 +79,8 @@ services:
     environment:
       PGPASSWORD: replicapass
     volumes:
-      - ./postgres/setup-slave.sh:/docker-entrypoint-initdb.d/setup-slave.sh
-      - ./postgres/slave-data:/var/lib/postgresql/data
+      - ./postgres/setup-slave.sh:/docker-entrypoint-initdb.d/setup-slave.sh:ro
+      - slave-data:/var/lib/postgresql/data
     command: ["bash", "/docker-entrypoint-initdb.d/setup-slave.sh"]
     ports:
       - "5433:5432"
@@ -121,3 +121,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9093,kafka3:9094"
       TOPIC: pains
     restart: unless-stopped
+
+volumes:
+  master-data:
+  slave-data:
