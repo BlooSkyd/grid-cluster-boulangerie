@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS pains (
 );
 
 CREATE TABLE IF NOT EXISTS commandes (
-    id_command SERIAL PRIMARY KEY,
+    id_commandes SERIAL PRIMARY KEY,
     ref_id_pain INTEGER REFERENCES pains(id_pain),
     qte INTEGER NOT NULL
 );
@@ -23,24 +23,24 @@ INSERT INTO pains (nom, prix) VALUES
 ('Ficelle', 1.00);
 
 -- Génération d'une vingtaine de commandes exemples (ref_id correspond aux ids de `pains` : 1..6)
-INSERT INTO commandes (ref_id, qte) VALUES (1, 3);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (3, 5);
-INSERT INTO commandes (ref_id, qte) VALUES (4, 2);
-INSERT INTO commandes (ref_id, qte) VALUES (5, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (6, 4);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 2);
-INSERT INTO commandes (ref_id, qte) VALUES (1, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 3);
-INSERT INTO commandes (ref_id, qte) VALUES (3, 2);
-INSERT INTO commandes (ref_id, qte) VALUES (4, 6);
-INSERT INTO commandes (ref_id, qte) VALUES (5, 2);
-INSERT INTO commandes (ref_id, qte) VALUES (6, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 5);
-INSERT INTO commandes (ref_id, qte) VALUES (1, 4);
-INSERT INTO commandes (ref_id, qte) VALUES (2, 2);
-INSERT INTO commandes (ref_id, qte) VALUES (3, 3);
-INSERT INTO commandes (ref_id, qte) VALUES (5, 4);
-INSERT INTO commandes (ref_id, qte) VALUES (4, 1);
-INSERT INTO commandes (ref_id, qte) VALUES (6, 2);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (1, 3);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (2, 1);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (3, 5);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (4, 2);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (5, 1);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (6, 4);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (2, 2);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (1, 1);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (2, 3);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (3, 2);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (4, 6);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (5, 2);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (6, 1);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (2, 5);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (1, 4);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (2, 2);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (3, 3);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (5, 4);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (4, 1);
+INSERT INTO commandes (ref_id_pain, qte) VALUES (6, 2);
 
