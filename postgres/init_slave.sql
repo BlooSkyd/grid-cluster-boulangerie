@@ -14,7 +14,7 @@ INSERT INTO compta (ref_id_pain, nom, prix_total, nb_cmd) values
 (4, 'Pain aux Céréales', 145.0, 20);
 
 -- Vue pour obtenir le top 5 des ventes par prix_total
-CREATE OR REPLACE VIEW v_top3_ventes AS
+CREATE OR REPLACE VIEW vue_top3_ventes AS
 SELECT ref_id_pain, nom, prix_total, nb_cmd
 FROM compta
 ORDER BY prix_total DESC

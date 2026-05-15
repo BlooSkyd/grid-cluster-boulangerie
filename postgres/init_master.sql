@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS pains (
 );
 
 CREATE TABLE IF NOT EXISTS commandes (
-    id_commandes SERIAL PRIMARY KEY,
+    id_commande SERIAL PRIMARY KEY,
     ref_id_pain INTEGER REFERENCES pains(id_pain),
     qte INTEGER NOT NULL
 );
