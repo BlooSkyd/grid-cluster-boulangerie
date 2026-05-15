@@ -34,8 +34,10 @@ curl http://localhost:8002/search/{name}
 ```
 ## Informations
 **Architecture:**
+
 ![Technical architecture schema](./architecture.svg)
 
 
 **Data model:**
+
 ![Data model schema](./data-model.svg)
