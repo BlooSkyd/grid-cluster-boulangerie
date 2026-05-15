@@ -97,6 +97,7 @@ services:
       - kafka3
     environment:
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9093,kafka3:9094"
+      TOPIC: commandes
 
   api_read:
     build: ./api_read
@@ -113,6 +114,7 @@ services:
       - kafka2
       - kafka3
       - db_master
+      - db_slave
     environment:
       DB_HOST: db_master
       DB_PORT: 5432
@@ -120,7 +122,7 @@ services:
       DB_PASSWORD: pass
       DB_NAME: boulangerie
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9093,kafka3:9094"
-      TOPIC: pains
+      TOPIC: commandes
     restart: unless-stopped
 
 volumes:

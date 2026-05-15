@@ -12,11 +12,12 @@ from psycopg2.extras import RealDictCursor
 app = FastAPI(title="API Écriture Commandes")
 
 class Commande(BaseModel):
-    ref_id: int
+    ref_id_pain: int
     qte: int
 
 logger = logging.getLogger("write-api")
 KAFKA_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka1:9092")
+TOPIC = os.environ.get("TOPIC", "commandes")
 
 # Lazily created singleton producer. Avoid creating the producer at import-time
 _producer = None
@@ -57,8 +58,8 @@ def create_commande(commande: Commande):
         event = {"operation": "create", "entity": "commande", "data": payload}
         try:
             prod = get_producer()
-            prod.send("commandes", event)
+            prod.send(TOPIC, event)
             prod.flush()
         except NoBrokersAvailable:
             raise HTTPException(status_code=503, detail="Kafka brokers not available")
-        return {"message": f"Événement de création de commande envoyé pour ref_id '{commande.ref_id}'", "ref_id": commande.ref_id}
+        return {"message": f"Événement de création de commande envoyé pour ref_id_pain '{commande.ref_id_pain}'", "ref_id_pain": commande.ref_id_pain, "qte":commande.qte}

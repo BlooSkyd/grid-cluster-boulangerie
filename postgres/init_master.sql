@@ -1,5 +1,5 @@
 -- Création de la table avec les nouvelles colonnes
-
+DROP TABLE IF EXISTS pains;
 CREATE TABLE IF NOT EXISTS pains (
     id_pain SERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
