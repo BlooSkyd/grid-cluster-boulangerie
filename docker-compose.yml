@@ -88,7 +88,7 @@ services:
     restart: unless-stopped
 
   api_write:
-    build: ./api_write
+    image: baguettebaguette/api-write:latest
     ports:
       - "8001:8000"
     depends_on:
@@ -100,14 +100,14 @@ services:
       TOPIC: commandes
 
   api_read:
-    build: ./api_read
+    image: baguettebaguette/api-read:latest
     ports:
       - "8002:8000"
     depends_on:
       - db_slave
 
   sync:
-    build: ./sync
+    image: baguettebaguette/sync:latest
     container_name: sync_service
     depends_on:
       - kafka1

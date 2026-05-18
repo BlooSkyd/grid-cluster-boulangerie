@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helmcqrs-sync
+  labels:
+    app: {{ .Values.sync.name}}
+spec:
+  replicas: {{ .Values.sync.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.sync.name}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.sync.name}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.sync.image.repository }}:{{ .Values.sync.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.sync.image.pullPolicy }}

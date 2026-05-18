@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helmcqrs-db-slave
+  labels:
+    app: {{ .Values.dbSlave.name}}
+spec:
+  replicas: {{ .Values.dbSlave.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.dbSlave.name}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbSlave.name}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.dbSlave.image.repository }}:{{ .Values.dbSlave.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.dbSlave.image.pullPolicy }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.dbSlave.env.POSTGRES_DB }}
+            - name: POSTGRES_USER
+              value: {{ .Values.dbSlave.env.POSTGRES_USER }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.dbSlave.env.POSTGRES_PASSWORD }}

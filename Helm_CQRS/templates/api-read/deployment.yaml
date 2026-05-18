@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helm-cqrs-api-read
+  labels:
+    app: {{ .Values.apiRead.name}}
+spec:
+  replicas: {{ .Values.apiRead.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.apiRead.name}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.apiRead.name}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.apiRead.image.repository }}:{{ .Values.apiRead.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.apiRead.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.apiRead.service.port }}

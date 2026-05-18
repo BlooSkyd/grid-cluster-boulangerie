@@ -1,0 +1,110 @@
+apiRead:
+  name: apiRead
+  replicaCount: 2
+  image: 
+    repository: baguettebaguette/api-read
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 30002
+    targetPort: 8000
+    nodePort: 30002
+
+apiWrite:
+  name: apiWrite
+  replicaCount: 2
+  image: 
+    repository: baguettebaguette/api-write
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 30001
+    targetPort: 8000
+    nodePort: 30001
+  env:
+    kafkaBootstrapServers: "kafka-svc:30092"
+
+sync:
+  name: sync
+  replicaCount: 2
+  image: 
+    repository: baguettebaguette/sync
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+  env:
+    dbHost: "dbMaster"
+    dbPort: "30032"
+
+kafka:
+  name: kafka
+  replicaCount: 3
+  image: 
+    repository: confluentinc/cp-kafka
+    tag: 7.4.0
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 30092
+    targetPort: 9092
+    nodePort: 30092
+  env:
+    brokerId: "-1"
+    zookeeperConnect: "zookeeper-svc:30081"
+    listeners: "PLAINTEXT://0.0.0.0:9092"
+    advertisedListeners: "PLAINTEXT://kafka:9092"
+    offsetsTopicReplicationFactor: "1"
+    heapOpts: "-Xmx256m -Xms128m"
+
+zookeeper:
+  name: zookeeper
+  replicaCount: 3
+  image: 
+    repository: confluentinc/cp-zookeeper
+    tag: 7.4.0
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 30081
+    targetPort: 2181
+    nodePort: 30081
+  env:
+    zookeeperClientPort: 2181
+    zookeeperTickTime: 2000
+
+dbMaster:
+  name: dbMaster
+  replicaCount: 1
+  image: 
+    repository: postgres
+    tag: 15
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 30032
+    targetPort: 5432
+    nodePort: 30032
+  env:
+    POSTGRES_DB: "boulangerie"
+    POSTGRES_USER: "user"
+    POSTGRES_PASSWORD: "pass"
+
+dbSlave:
+  name: dbSlave
+  replicaCount: 1
+  image: 
+    repository: postgres
+    tag: 15
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 30033
+    targetPort: 5432
+    nodePort: 30033
+  env:
+    POSTGRES_DB: "boulangerie"
+    POSTGRES_USER: "user"
+    POSTGRES_PASSWORD: "pass"

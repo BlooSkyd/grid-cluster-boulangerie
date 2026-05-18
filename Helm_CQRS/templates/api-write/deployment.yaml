@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helmcqrs-api-write
+  labels:
+    app: {{ .Values.apiWrite.name}}
+spec:
+  replicas: {{ .Values.apiWrite.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.apiWrite.name}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.apiWrite.name}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.apiWrite.image.repository }}:{{ .Values.apiWrite.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.apiWrite.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.apiWrite.service.port }}
+          env:
+          - name: KAFKA_BOOTSTRAP_SERVERS
+            value: "{{ .Values.apiWrite.env.kafkaBootstrapServers }}"

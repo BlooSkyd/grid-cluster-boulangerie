@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helmcqrs-zookeeper
+  labels:
+    app: {{ .Values.zookeeper.name}}
+spec:
+  replicas: {{ .Values.zookeeper.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.zookeeper.name}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.zookeeper.name}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.zookeeper.image.repository }}:{{ .Values.zookeeper.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.zookeeper.image.pullPolicy }}
+          env:
+          - name: ZOOKEEPER_CLIENT_PORT
+            value: "{{ .Values.zookeeper.env.zookeeperClientPort }}"
+          - name: ZOOKEEPER_TICK_TIME
+            value: "{{ .Values.zookeeper.env.zookeeperTickTime }}"

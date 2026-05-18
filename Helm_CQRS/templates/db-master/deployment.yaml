@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helmcqrs-db-master
+  labels:
+    app: {{ .Values.dbMaster.name}}
+spec:
+  replicas: {{ .Values.dbMaster.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.dbMaster.name}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbMaster.name}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.dbMaster.image.repository }}:{{ .Values.dbMaster.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.dbMaster.image.pullPolicy }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.dbMaster.env.POSTGRES_DB }}
+            - name: POSTGRES_USER
+              value: {{ .Values.dbMaster.env.POSTGRES_USER }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.dbMaster.env.POSTGRES_PASSWORD }}
