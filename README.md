@@ -35,9 +35,9 @@ curl http://localhost:8002/search/{name}
 ## Informations
 **Architecture:**
 
-![Technical architecture schema](./architecture.svg)
+![Technical architecture schema](./schema/architecture.svg)
 
 
 **Data model:**
 
-![Data model schema](./data-model.svg)
+![Data model schema](./schema/data-model.svg)
